@@ -1,0 +1,189 @@
+:root {
+    --primary-color: #1890ff;
+    --secondary-color: #52c41a;
+    --accent-color: #fa541c;
+    --nea-color: #1890ff;
+    --gov-color: #52c41a;
+}
+
+body {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4efe9 100%);
+    min-height: 100vh;
+    font-family: 'Microsoft YaHei', sans-serif;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    color: var(--primary-color) !important;
+}
+
+.header-section {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+.feature-card {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+}
+
+.feature-icon {
+    color: var(--primary-color);
+}
+
+.info-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    margin-top: 2rem;
+}
+
+.filter-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.news-card {
+    background: white;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.news-card.nea {
+    border-left: 4px solid var(--nea-color);
+}
+
+.news-card.gov {
+    border-left: 4px solid var(--gov-color);
+}
+
+.news-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+.news-title {
+    color: #262626;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    line-height: 1.4;
+}
+
+.news-title:hover {
+    color: var(--primary-color);
+}
+
+.news-date {
+    background: var(--primary-color);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.news-source {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.source-nea {
+    color: var(--nea-color);
+}
+
+.source-gov {
+    color: var(--gov-color);
+}
+
+.stats-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.stats-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.source-badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.badge-nea {
+    background-color: var(--nea-color);
+}
+
+.badge-gov {
+    background-color: var(--gov-color);
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    border: none;
+    border-radius: 25px;
+    padding: 10px 25px;
+    font-weight: 600;
+}
+
+.btn-outline-primary {
+    border-radius: 25px;
+    padding: 10px 25px;
+    font-weight: 600;
+}
+
+.loading {
+    display: none;
+    text-align: center;
+    padding: 3rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #666;
+}
+
+.form-control {
+    border-radius: 10px;
+    border: 2px solid #e8e8e8;
+    padding: 10px;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(24, 144, 255, 0.25);
+}
+
+.form-select {
+    border-radius: 10px;
+    border: 2px solid #e8e8e8;
+    padding: 10px;
+}
+
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(24, 144, 255, 0.25);
+}
