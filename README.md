@@ -5,16 +5,10 @@
 ## 第一步：安装依赖
 pip install -r requirements.txt
 ## 第二步：运行数据抓取程序（每周更新）
-### 1. 首先运行PV Magazine爬虫
-python pv_magazine_crawler.py
-### 2. 然后运行IRENA爬虫
-python irena_crawler.py
-### 3. 接着运行IEA数据处理器
-python deepseek_json.py
-### 4. 接着运行翻译程序
+### 1. 首先每日自动运行
+python master_crawler.py daily
+### 2. 接着运行翻译程序
 python translator.py
-### 5. 最后运行组合爬虫（整合中国政府网和国家能源局）
-python combined_crawler.py
 ## 第三步：启动Web应用
 python app.py
 ## 第四步：访问系统
