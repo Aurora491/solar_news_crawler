@@ -1,0 +1,69 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# AI Code Assistants
+.claude/
+.cursor/
+.aider/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific - Crawler outputs
+output/
+solar_news_crawler/output/
+solar_news_crawler/*.log
+
+# Translation files (generated at runtime)
+translation_cache.json
+translator_*.json
+solar_news_crawler/translation_cache.json
+solar_news_crawler/translator_*.json
+
+# Generated data files
+solar_news_crawler/*.json
+!solar_news_crawler/requirements.txt
+
+# Duplicate directories (should only exist in solar_news_crawler/)
+/static/
+/templates/
+
+# Environment variables
+.env

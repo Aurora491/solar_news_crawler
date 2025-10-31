@@ -12,6 +12,9 @@ import time
 from datetime import datetime, timedelta
 import re
 import os
+import tempfile
+import uuid
+import random
 
 class PVMagazineSeleniumCrawler:
     def __init__(self):
@@ -20,16 +23,29 @@ class PVMagazineSeleniumCrawler:
         
         # 设置Chrome选项
         chrome_options = Options()
-        chrome_options.add_argument('--headless')  # 无头模式
+        chrome_options.add_argument('--headless=new')  # 新版无头模式
+        chrome_options.add_argument('--disable-gpu')
+
+        # 创建唯一的用户数据目录，避免多实例冲突
+        unique_dir = os.path.join(tempfile.gettempdir(), f"chrome_pvmag_{uuid.uuid4().hex}")
+        chrome_options.add_argument(f'--user-data-dir={unique_dir}')
+
+        # 添加更多隔离参数
         chrome_options.add_argument('--no-sandbox')
         chrome_options.add_argument('--disable-dev-shm-usage')
-        chrome_options.add_argument('--disable-gpu')
+        chrome_options.add_argument('--disable-blink-features=AutomationControlled')
+        chrome_options.add_argument(f'--remote-debugging-port={9222 + random.randint(0, 1000)}')
         chrome_options.add_argument('--window-size=1920,1080')
         chrome_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
-        
-        # 使用webdriver-manager自动管理ChromeDriver
-        service = Service(ChromeDriverManager().install())
-        self.driver = webdriver.Chrome(service=service, options=chrome_options)
+
+        # 使用系统的ChromeDriver（适配Linux环境）
+        try:
+            # 尝试使用系统chromedriver
+            self.driver = webdriver.Chrome(options=chrome_options)
+        except:
+            # 如果失败，尝试使用webdriver-manager
+            service = Service(ChromeDriverManager().install())
+            self.driver = webdriver.Chrome(service=service, options=chrome_options)
         self.wait = WebDriverWait(self.driver, 20)
         
         # 设置日期范围

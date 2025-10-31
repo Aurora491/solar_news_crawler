@@ -183,7 +183,41 @@
             `;
         }
     }
-    
+
+    // 刷新数据
+    async function refreshData() {
+        const refreshBtn = document.getElementById('refreshBtn');
+        const originalText = refreshBtn.innerHTML;
+
+        try {
+            // 显示刷新中状态
+            refreshBtn.disabled = true;
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>刷新中...';
+
+            // 调用刷新API
+            const response = await fetch('/refresh_translated_news');
+            const result = await response.json();
+
+            if (result.success) {
+                // 刷新成功，重新加载数据信息和新闻列表
+                await loadDataInfo();
+                await loadNews();
+
+                // 显示成功消息
+                showMessage(result.message, 'success');
+            } else {
+                showMessage(result.error || '数据刷新失败', 'danger');
+            }
+        } catch (error) {
+            console.error('刷新数据失败:', error);
+            showMessage('刷新失败，请稍后重试', 'danger');
+        } finally {
+            // 恢复按钮状态
+            refreshBtn.disabled = false;
+            refreshBtn.innerHTML = originalText;
+        }
+    }
+
     // 加载新闻数据
     async function loadNews() {
         const startDate = document.getElementById('startDate').value;

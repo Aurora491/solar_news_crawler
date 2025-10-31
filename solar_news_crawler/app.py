@@ -27,10 +27,7 @@ def find_latest_translator_file(directory="."):
     """查找最新的翻译文件"""
     return find_latest_file('translator_*.json', directory)
 
-# 使用正确的Python路径
-python_path = r"C:\Users\刘佳欣\AppData\Local\Programs\Python\Python311"
-if python_path not in sys.path:
-    sys.path.append(python_path)
+# Python路径配置已移除 - 不需要手动添加系统Python路径
 
 app = Flask(__name__)
 
@@ -48,6 +45,7 @@ last_translated_update_time = None  # 新增：翻译数据更新时间
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FILE = find_latest_file('combined_*.json') or os.path.join(BASE_DIR, 'combined_news.json')
 IRENA_DATA_FILE = find_latest_file('irena_*.json') or os.path.join(BASE_DIR, 'irena_news_load_more.json')
+IRENA_TRANSLATED_FILE = find_latest_file('irena_*_translated.json') or os.path.join(BASE_DIR, 'irena_translated.json')  # 定义IRENA翻译文件
 TRANSLATED_FILE = find_latest_translator_file() or os.path.join(BASE_DIR, 'translator.json')  # 新增：翻译合并文件
 
 print(f"📁 数据文件路径: {DATA_FILE}")
@@ -155,19 +153,22 @@ def load_news_from_file():
     """从JSON文件加载国内新闻数据"""
     global news_data
     try:
-        if os.path.exists(DATA_FILE):
-            with open(DATA_FILE, 'r', encoding='utf-8') as f:
+        # 动态查找最新的combined文件
+        latest_file = find_latest_file('combined_*.json') or DATA_FILE
+
+        if os.path.exists(latest_file):
+            with open(latest_file, 'r', encoding='utf-8') as f:
                 loaded_data = json.load(f)
-            
+
             if isinstance(loaded_data, list):
                 news_data = loaded_data
-                print(f"✅ 从 {DATA_FILE} 加载了 {len(news_data)} 条国内新闻")
+                print(f"✅ 从 {latest_file} 加载了 {len(news_data)} 条国内新闻")
                 return True
             else:
                 print(f"❌ 数据文件格式错误，期望列表，得到 {type(loaded_data)}")
                 return False
         else:
-            print(f"❌ 数据文件 {DATA_FILE} 不存在")
+            print(f"❌ 数据文件 {latest_file} 不存在")
             alternative_files = [
                 'gov_solar_news.json',
                 'nea_solar_news.json', 
@@ -191,20 +192,24 @@ def load_irena_news_from_file():
     """从JSON文件加载IRENA新闻数据"""
     global irena_news_data
     try:
+        # 动态查找最新的irena翻译文件
+        latest_translated_file = find_latest_file('irena_*_translated.json') or IRENA_TRANSLATED_FILE
+        latest_irena_file = find_latest_file('irena_*.json') or IRENA_DATA_FILE
+
         # 优先尝试加载翻译后的文件
-        if os.path.exists(IRENA_TRANSLATED_FILE):
-            print(f"🔍 找到翻译后的文件: {IRENA_TRANSLATED_FILE}")
-            with open(IRENA_TRANSLATED_FILE, 'r', encoding='utf-8') as f:
+        if os.path.exists(latest_translated_file):
+            print(f"🔍 找到翻译后的文件: {latest_translated_file}")
+            with open(latest_translated_file, 'r', encoding='utf-8') as f:
                 loaded_data = json.load(f)
-            
+
             if isinstance(loaded_data, list):
                 irena_news_data = loaded_data
                 print(f"✅ 从翻译文件加载了 {len(irena_news_data)} 条IRENA新闻")
                 return True
-        
+
         # 如果翻译文件不存在，回退到原始文件
-        if os.path.exists(IRENA_DATA_FILE):
-            with open(IRENA_DATA_FILE, 'r', encoding='utf-8') as f:
+        if os.path.exists(latest_irena_file):
+            with open(latest_irena_file, 'r', encoding='utf-8') as f:
                 loaded_data = json.load(f)
             
             if isinstance(loaded_data, list):
@@ -214,11 +219,11 @@ def load_irena_news_from_file():
             else:
                 print(f"❌ IRENA数据文件格式错误: {type(loaded_data)}")
                 return False
-            
-            print(f"✅ 从 {IRENA_DATA_FILE} 加载了 {len(irena_news_data)} 条IRENA新闻")
+
+            print(f"✅ 从 {latest_irena_file} 加载了 {len(irena_news_data)} 条IRENA新闻")
             return True
         else:
-            print(f"❌ IRENA数据文件 {IRENA_DATA_FILE} 不存在")
+            print(f"❌ IRENA数据文件 {latest_irena_file} 不存在")
             irena_alternative_files = [
                 'irena_news.json',
                 'irena_news_comprehensive.json',
@@ -249,25 +254,28 @@ def load_translated_news_from_file():
     """从翻译合并文件加载数据"""
     global translated_news_data, last_translated_update_time
     try:
-        if os.path.exists(TRANSLATED_FILE):
-            with open(TRANSLATED_FILE, 'r', encoding='utf-8') as f:
+        # 动态查找最新的translator文件
+        latest_file = find_latest_translator_file() or TRANSLATED_FILE
+
+        if os.path.exists(latest_file):
+            with open(latest_file, 'r', encoding='utf-8') as f:
                 loaded_data = json.load(f)
-            
+
             if isinstance(loaded_data, dict) and 'news_list' in loaded_data:
                 translated_news_data = loaded_data['news_list']
-                print(f"✅ 从翻译文件加载了 {len(translated_news_data)} 条多来源新闻")
+                print(f"✅ 从翻译文件 {latest_file} 加载了 {len(translated_news_data)} 条多来源新闻")
                 last_translated_update_time = datetime.now()
                 return True
             elif isinstance(loaded_data, list):
                 translated_news_data = loaded_data
-                print(f"✅ 从翻译文件加载了 {len(translated_news_data)} 条多来源新闻")
+                print(f"✅ 从翻译文件 {latest_file} 加载了 {len(translated_news_data)} 条多来源新闻")
                 last_translated_update_time = datetime.now()
                 return True
             else:
                 print(f"❌ 翻译文件格式错误: {type(loaded_data)}")
                 return False
         else:
-            print(f"❌ 翻译文件 {TRANSLATED_FILE} 不存在")
+            print(f"❌ 翻译文件 {latest_file} 不存在")
             return False
     except Exception as e:
         print(f"❌ 加载翻译文件失败: {e}")
@@ -410,6 +418,9 @@ def initialize_data():
         print(f"✅ 翻译数据初始化完成: {len(translated_news_data)} 条新闻")
     else:
         print("❌ 翻译数据初始化失败")
+
+# 在模块加载时初始化数据（支持gunicorn等WSGI服务器）
+initialize_data()
 
 # ==================== 国内新闻路由 ====================
 
@@ -691,6 +702,31 @@ def check_irena_update():
 
 # ==================== 翻译合并新闻路由 ====================
 
+@app.route('/refresh_translated_news')
+def refresh_translated_news():
+    """重新加载最新的翻译文件（不运行爬虫，只刷新数据）"""
+    global translated_news_data, last_translated_update_time
+
+    try:
+        print("🔄 开始刷新翻译数据...")
+
+        # 重新加载最新的翻译文件
+        if load_translated_news_from_file():
+            print(f"✅ 翻译数据刷新成功！总计：{len(translated_news_data)} 条新闻")
+            return jsonify({
+                'success': True,
+                'message': f'数据刷新成功！共 {len(translated_news_data)} 条新闻',
+                'count': len(translated_news_data),
+                'last_update': last_translated_update_time.strftime('%Y-%m-%d %H:%M:%S') if last_translated_update_time else None
+            })
+        else:
+            print("❌ 翻译数据加载失败")
+            return jsonify({'success': False, 'error': '数据加载失败，请稍后重试'})
+
+    except Exception as e:
+        print(f"❌ 刷新翻译数据失败: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
 @app.route('/get_translated_news')
 def get_translated_news():
     """获取翻译合并后的多来源新闻数据"""
@@ -825,9 +861,9 @@ if __name__ == '__main__':
         os.makedirs('static/css')
     if not os.path.exists('static/js'):
         os.makedirs('static/js')
-    
-    initialize_data()
-    
+
+    # 数据已在模块级别初始化，此处无需重复调用
+
     print("🌐 启动Flask应用...")
     print("📱 访问 http://127.0.0.1:5000 查看网站")
     print("📰 访问 http://127.0.0.1:5000/translated_news 查看多来源翻译新闻")
