@@ -4,13 +4,10 @@ import json
 import time
 import re
 import random
+import tempfile
+import uuid
 from datetime import datetime, timedelta
 from urllib.parse import quote, urljoin
-
-# 使用正确的Python路径
-python_path = r"C:\Users\刘佳欣\AppData\Local\Programs\Python\Python311"
-if python_path not in sys.path:
-    sys.path.append(python_path)
 
 try:
     from selenium import webdriver
@@ -30,18 +27,24 @@ try:
         def setup_driver(self):
             """设置浏览器环境"""
             chrome_options = Options()
-            
-            # 调试阶段不使用无头模式
-            # chrome_options.add_argument('--headless')
-            
+
+            # 使用无头模式
+            chrome_options.add_argument('--headless=new')
+            chrome_options.add_argument('--disable-gpu')
+
             # 反检测配置
             chrome_options.add_argument('--disable-blink-features=AutomationControlled')
             chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
             chrome_options.add_experimental_option('useAutomationExtension', False)
-            
-            # 基本配置
+
+            # 不使用user-data-dir，让Chrome自动处理（避免冲突）
+            # unique_dir = os.path.join(tempfile.gettempdir(), f"chrome_combined_{uuid.uuid4().hex}")
+            # chrome_options.add_argument(f'--user-data-dir={unique_dir}')
+
+            # 添加更多隔离参数
             chrome_options.add_argument('--no-sandbox')
             chrome_options.add_argument('--disable-dev-shm-usage')
+            chrome_options.add_argument(f'--remote-debugging-port={9222 + random.randint(0, 1000)}')
             chrome_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
             chrome_options.add_argument('--window-size=1920,1080')
             

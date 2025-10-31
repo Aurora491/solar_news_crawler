@@ -4,13 +4,10 @@ import json
 import time
 import re
 import random
+import tempfile
+import uuid
 from datetime import datetime, timedelta
 from urllib.parse import quote, urljoin
-
-# 使用正确的Python路径
-python_path = r"C:\Users\刘佳欣\AppData\Local\Programs\Python\Python311"
-if python_path not in sys.path:
-    sys.path.append(python_path)
 
 try:
     from selenium import webdriver
@@ -34,49 +31,59 @@ try:
                 "renewable energy"
             ]
             
-        def setup_driver(self):
-            """设置浏览器环境"""
+        def _create_chrome_options(self):
+            """创建Chrome选项（每次调用都生成新的唯一目录）"""
             chrome_options = Options()
-            
-            # 调试阶段不使用无头模式
-            # chrome_options.add_argument('--headless')
-            
+
+            # 使用无头模式减少资源占用和冲突
+            chrome_options.add_argument('--headless=new')
+            chrome_options.add_argument('--disable-gpu')
+
             # 修复ChromeDriver权限问题
             chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
             chrome_options.add_experimental_option('useAutomationExtension', False)
-            
-            # 基本配置
+
+            # 创建唯一的用户数据目录，避免多实例冲突
+            unique_dir = os.path.join(tempfile.gettempdir(), f"chrome_irena_{uuid.uuid4().hex}")
+            chrome_options.add_argument(f'--user-data-dir={unique_dir}')
+
+            # 添加更多隔离参数
             chrome_options.add_argument('--no-sandbox')
             chrome_options.add_argument('--disable-dev-shm-usage')
+            chrome_options.add_argument('--disable-blink-features=AutomationControlled')
+            chrome_options.add_argument(f'--remote-debugging-port={9222 + random.randint(0, 1000)}')
             chrome_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
             chrome_options.add_argument('--window-size=1920,1080')
-            
+
+            return chrome_options
+
+        def setup_driver(self):
+            """设置浏览器环境"""
             try:
                 # 自动查找ChromeDriver
                 try:
-                    self.driver = webdriver.Chrome(options=chrome_options)
+                    self.driver = webdriver.Chrome(options=self._create_chrome_options())
                 except Exception as e:
                     print(f"   方法1失败: {e}")
-                    # 尝试指定ChromeDriver路径
+                    # 尝试指定ChromeDriver路径（重新生成options避免目录冲突）
                     try:
                         possible_paths = [
-                            r"C:\Users\刘佳欣\AppData\Local\Programs\Python\Python311\Scripts\chromedriver.exe",
-                            r"C:\Windows\System32\chromedriver.exe",
-                            "chromedriver.exe",
-                            "./chromedriver.exe"
+                            "/usr/bin/chromedriver",
+                            "/usr/local/bin/chromedriver",
+                            "chromedriver"
                         ]
-                        
+
                         for path in possible_paths:
                             if os.path.exists(path):
                                 service = Service(executable_path=path)
-                                self.driver = webdriver.Chrome(service=service, options=chrome_options)
+                                self.driver = webdriver.Chrome(service=service, options=self._create_chrome_options())
                                 print(f"   ✅ 使用ChromeDriver路径: {path}")
                                 break
                         else:
-                            self.driver = webdriver.Chrome(options=chrome_options)
+                            self.driver = webdriver.Chrome(options=self._create_chrome_options())
                     except Exception as e2:
                         print(f"   方法2失败: {e2}")
-                        self.driver = webdriver.Chrome(options=chrome_options)
+                        self.driver = webdriver.Chrome(options=self._create_chrome_options())
                 
                 self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
                 return True

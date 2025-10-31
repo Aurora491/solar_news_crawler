@@ -3,26 +3,54 @@ import os
 import json
 import time
 import schedule
+import shutil
+import glob
 from datetime import datetime
 from iea_crawler import IEASolarContentCrawler
 from pv_magazine_crawler import PVMagazineSeleniumCrawler
 from irena_crawler import IrenaCrawler
 from combined_crawler import CombinedSolarCrawler
+from translator import MultiFileTranslator
 
 def save_individual_crawler_data(crawler_name, data, output_dir="output/individual"):
     """保存单个爬虫的数据到独立文件"""
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    
+
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     filename = f"{crawler_name}_{timestamp}.json"
     filepath = os.path.join(output_dir, filename)
-    
+
     with open(filepath, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-    
+
     print(f"{crawler_name}数据已保存: {filepath}")
     return filepath
+
+def cleanup_chrome_temp():
+    """清理Chrome临时文件，避免多实例冲突"""
+    try:
+        import tempfile
+        temp_dir = tempfile.gettempdir()
+
+        # 清理Chrome相关的临时目录
+        patterns = [
+            os.path.join(temp_dir, 'chrome_*'),
+            os.path.join(temp_dir, '.com.google.Chrome.*'),
+            os.path.join(temp_dir, 'scoped_dir*')
+        ]
+
+        for pattern in patterns:
+            for path in glob.glob(pattern):
+                try:
+                    if os.path.isdir(path):
+                        shutil.rmtree(path, ignore_errors=True)
+                except:
+                    pass
+
+        print("🧹 已清理Chrome临时文件")
+    except Exception as e:
+        print(f"清理临时文件时出错（可忽略）: {e}")
 
 # 在master_crawler.py的run_all_crawlers函数中修改：
 
@@ -42,7 +70,12 @@ def run_all_crawlers():
         individual_files["iea"] = iea_file
         all_data.extend(iea_crawler.content_data)
         print(f"IEA爬虫完成，获取 {len(iea_crawler.content_data)} 条数据")
-        
+
+        # 等待并清理，避免冲突
+        print("⏳ 等待10秒，清理临时文件...")
+        time.sleep(10)
+        cleanup_chrome_temp()
+
         # 2. 运行PV Magazine爬虫
         print("\n=== 开始运行PV Magazine爬虫 ===")
         try:
@@ -56,7 +89,12 @@ def run_all_crawlers():
         except Exception as e:
             print(f"PV Magazine爬虫失败: {e}")
             print("跳过PV Magazine爬虫，继续执行其他爬虫...")
-        
+
+        # 等待并清理，避免冲突
+        print("⏳ 等待10秒，清理临时文件...")
+        time.sleep(10)
+        cleanup_chrome_temp()
+
         # 3. 运行IRENA爬虫（修复方法名）
         print("\n=== 开始运行IRENA爬虫 ===")
         try:
@@ -79,7 +117,12 @@ def run_all_crawlers():
         except Exception as e:
             print(f"IRENA爬虫失败: {e}")
             print("跳过IRENA爬虫，继续执行其他爬虫...")
-        
+
+        # 等待并清理，避免冲突
+        print("⏳ 等待10秒，清理临时文件...")
+        time.sleep(10)
+        cleanup_chrome_temp()
+
         # 4. 运行Combined爬虫（修复方法名）
         print("\n=== 开始运行Combined爬虫 ===")
         try:
@@ -102,13 +145,29 @@ def run_all_crawlers():
         except Exception as e:
             print(f"Combined爬虫失败: {e}")
             print("跳过Combined爬虫...")
-        
+
+        # 最后清理
+        print("⏳ 清理临时文件...")
+        cleanup_chrome_temp()
+
         print(f"\n=== 所有爬虫任务完成 ===")
         print(f"总计获取 {len(all_data)} 条内容")
         print("各爬虫文件:")
         for name, filepath in individual_files.items():
             print(f"  - {name}: {filepath}")
-        
+
+        # 5. 运行翻译
+        print("\n=== 开始翻译 ===")
+        try:
+            translator = MultiFileTranslator()
+            output_file = translator.merge_and_save_translations()
+            if output_file:
+                print(f"✅ 翻译完成，文件: {output_file}")
+            else:
+                print("⚠️ 翻译未生成输出文件")
+        except Exception as e:
+            print(f"翻译失败: {e}")
+
         return {
             "individual_files": individual_files,
             "total_count": len(all_data)
