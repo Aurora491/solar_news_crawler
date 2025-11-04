@@ -1,350 +1,714 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>国内新闻 - 光伏资讯平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-{% block title %}光伏新闻搜索 - 双数据源{% endblock %}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            color: #0a0a0a;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
 
-{% block nav_extra %}
-    <a class="btn btn-outline-primary" href="{{ url_for('index') }}">
-        <i class="fas fa-home me-1"></i>返回主页
-    </a>
-{% endblock %}
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            width: 100%;
+            border-bottom: 1px solid #e5e5e5;
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
 
-{% block content %}
-<!-- 头部区域 -->
-<div class="header-section">
-    <div class="container text-center">
-        <h1 class="display-5 fw-bold mb-3">光伏新闻搜索</h1>
-        <p class="lead mb-4">按时间范围搜索国家能源局与中国政府网的光伏新闻</p>
+        .header-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            height: 64px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #0a0a0a;
+        }
+
+        .logo-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0052CC 0%, #2684FF 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        nav {
+            display: flex;
+            gap: 24px;
+        }
+
+        nav a {
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            color: #0a0a0a;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover {
+            color: #0052CC;
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                display: none;
+            }
+        }
+
+        /* Main Content */
+        .page-header {
+            background: white;
+            padding: 32px 16px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .page-header-content {
+            max-width: 1280px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #0a0a0a;
+        }
+
+        .page-header p {
+            font-size: 16px;
+            color: #6b7280;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 24px 16px;
+        }
+
+        /* Data Info Alert */
+        .alert {
+            background-color: white;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #0052CC;
+        }
+
+        .alert-info {
+            border-left-color: #0052CC;
+        }
+
+        .alert-warning {
+            border-left-color: #f59e0b;
+        }
+
+        /* Filter Card */
+        .filter-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #0a0a0a;
+        }
+
+        .form-control {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #0052CC;
+            box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
+        }
+
+        .form-select {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            background-color: white;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: #0052CC;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: #0052CC;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0747A6;
+        }
+
+        .btn-outline {
+            background-color: white;
+            color: #0a0a0a;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-outline:hover {
+            background-color: #f5f5f5;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stats-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0052CC;
+            margin-bottom: 4px;
+        }
+
+        .stats-label {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        /* News Cards */
+        .news-card {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border-left: 4px solid #0052CC;
+        }
+
+        .news-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .news-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .news-date {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-nea {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-gov {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .news-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0a0a0a;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .news-title:hover {
+            color: #0052CC;
+        }
+
+        .news-link {
+            display: inline-block;
+            padding: 6px 16px;
+            background-color: #f5f5f5;
+            color: #0a0a0a;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .news-link:hover {
+            background-color: #0052CC;
+            color: white;
+        }
+
+        /* Loading State */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 48px;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #e5e5e5;
+            border-top-color: #0052CC;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 64px 16px;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid #e5e5e5;
+            background-color: white;
+            padding: 32px 16px;
+            margin-top: 48px;
+        }
+
+        .footer-container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 16px;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .footer-bottom-text {
+            font-size: 12px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <a href="{{ url_for('index') }}" class="logo">
+                <div class="logo-img">
+                    <svg class="logo-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="4"/>
+                        <path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>
+                    </svg>
+                </div>
+                <span class="logo-text">光伏资讯</span>
+            </a>
+            <nav>
+                <a href="{{ url_for('index') }}">主页</a>
+                <a href="{{ url_for('news_search') }}">国内新闻</a>
+                <a href="{{ url_for('translated_news') }}">国际新闻</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-content">
+            <h1>国内新闻</h1>
+            <p>实时追踪国家能源局与政府部门最新政策动态</p>
+        </div>
     </div>
-</div>
 
-<div class="container">
-    <!-- 数据信息区域 -->
-    <div id="data-info" class="mb-3">
-        <!-- 数据信息将在这里显示 -->
-    </div>
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Data Info -->
+        <div id="data-info"></div>
 
-    <!-- 筛选区域 -->
-    <div class="filter-card">
-        <div class="card-body p-4">
-            <div class="row g-3 align-items-end">
-                <div class="col-md-2">
-                    <label class="form-label fw-bold">开始日期</label>
+        <!-- Filter Card -->
+        <div class="filter-card">
+            <div class="filter-row">
+                <div class="form-group">
+                    <label class="form-label">开始日期</label>
                     <input type="date" class="form-control" id="startDate">
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label fw-bold">结束日期</label>
+                <div class="form-group">
+                    <label class="form-label">结束日期</label>
                     <input type="date" class="form-control" id="endDate">
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label fw-bold">数据来源</label>
+                <div class="form-group">
+                    <label class="form-label">数据来源</label>
                     <select class="form-select" id="sourceFilter">
                         <option value="">全部来源</option>
                         <option value="国家能源局">国家能源局</option>
                         <option value="中国政府网">中国政府网</option>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">关键词筛选</label>
+                <div class="form-group">
+                    <label class="form-label">关键词</label>
                     <input type="text" class="form-control" id="keyword" placeholder="输入关键词...">
                 </div>
-                <div class="col-md-3">
-                    <button class="btn btn-primary w-100 mb-2" onclick="loadNews()">
-                        <i class="fas fa-search me-2"></i>筛选新闻
-                    </button>
-                    <button class="btn btn-outline-primary w-100" id="refreshBtn" onclick="refreshData()">
-                        <i class="fas fa-sync-alt me-2"></i>刷新数据
-                    </button>
+                <div class="form-group">
+                    <label class="form-label" style="opacity: 0;">操作</label>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="loadNews()">搜索</button>
+                        <button class="btn btn-outline" id="refreshBtn" onclick="refreshData()">更新</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- 统计信息 -->
-    <div class="row mb-4">
-        <div class="col-md-3">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
             <div class="stats-card">
                 <div class="stats-number" id="totalCount">0</div>
                 <div class="stats-label">总新闻数</div>
             </div>
-        </div>
-        <div class="col-md-3">
             <div class="stats-card">
                 <div class="stats-number" id="filteredCount">0</div>
                 <div class="stats-label">筛选结果</div>
             </div>
-        </div>
-        <div class="col-md-3">
             <div class="stats-card">
                 <div class="stats-number" id="neaCount">0</div>
                 <div class="stats-label">国家能源局</div>
             </div>
-        </div>
-        <div class="col-md-3">
             <div class="stats-card">
                 <div class="stats-number" id="govCount">0</div>
                 <div class="stats-label">中国政府网</div>
             </div>
         </div>
-    </div>
 
-    <!-- 加载动画 -->
-    <div class="loading" id="loading">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">加载中...</span>
+        <!-- Loading Animation -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="color: #6b7280;">正在加载新闻...</p>
         </div>
-        <p class="mt-3">正在加载新闻数据...</p>
+
+        <!-- News List -->
+        <div id="newsList"></div>
     </div>
 
-    <!-- 新闻列表 -->
-    <div id="newsList"></div>
-</div>
-{% endblock %}
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-bottom">
+                <p class="footer-bottom-text">&copy; 2025 光伏资讯平台. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
 
-{% block scripts %}
-<script>
-    // 设置默认日期（最近一个月）
-    function setDefaultDates() {
-        const endDate = new Date();
-        const startDate = new Date();
-        startDate.setMonth(startDate.getMonth() - 1);
-        
-        document.getElementById('startDate').valueAsDate = startDate;
-        document.getElementById('endDate').valueAsDate = endDate;
-    }
-    
-    // 加载数据统计信息
-    async function loadDataInfo() {
-        try {
-            const response = await fetch('/get_stats');
-            const data = await response.json();
-            
-            if (data.success) {
-                const infoDiv = document.getElementById('data-info');
-                let sourceStatsHtml = '';
-                
-                // 生成来源统计HTML
-                for (const [source, count] of Object.entries(data.source_stats)) {
-                    sourceStatsHtml += `<span class="badge bg-secondary me-2">${source}: ${count}</span>`;
-                }
-                
-                infoDiv.innerHTML = `
-                    <div class="alert alert-info">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong><i class="fas fa-database me-1"></i>数据来源:</strong> JSON文件
-                                <span class="ms-3"><strong>数据总量:</strong> ${data.total_count} 条</span>
-                                <span class="ms-3"><strong>最后更新:</strong> ${data.last_update || '未知'}</span>
-                            </div>
-                            <div>
-                                ${sourceStatsHtml}
+    <script>
+        // 设置默认日期
+        function setDefaultDates() {
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setMonth(startDate.getMonth() - 1);
+
+            document.getElementById('startDate').valueAsDate = startDate;
+            document.getElementById('endDate').valueAsDate = endDate;
+        }
+
+        // 加载数据统计信息
+        async function loadDataInfo() {
+            try {
+                const response = await fetch('/get_stats');
+                const data = await response.json();
+
+                if (data.success) {
+                    const infoDiv = document.getElementById('data-info');
+                    let sourceStatsHtml = '';
+
+                    for (const [source, count] of Object.entries(data.source_stats)) {
+                        sourceStatsHtml += `<span class="badge badge-nea" style="margin-right: 8px;">${source}: ${count}</span>`;
+                    }
+
+                    infoDiv.innerHTML = `
+                        <div class="alert alert-info">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                                <div>
+                                    <strong>数据总量:</strong> ${data.total_count} 条
+                                    <span style="margin-left: 16px;"><strong>最后更新:</strong> ${data.last_update || '未知'}</span>
+                                </div>
+                                <div>${sourceStatsHtml}</div>
                             </div>
                         </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('获取数据信息失败:', error);
+            }
+        }
+
+        // 加载新闻数据
+        async function loadNews() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const keyword = document.getElementById('keyword').value;
+            const sourceFilter = document.getElementById('sourceFilter').value;
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('newsList').innerHTML = '';
+
+            try {
+                const params = new URLSearchParams();
+                if (startDate) params.append('start_date', startDate);
+                if (endDate) params.append('end_date', endDate);
+                if (keyword) params.append('keyword', keyword);
+                if (sourceFilter) params.append('source', sourceFilter);
+
+                const response = await fetch(`/get_news?${params}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    displayNews(result.data);
+                    updateStats(result);
+                } else {
+                    showError('加载失败: ' + result.error);
+                }
+            } catch (error) {
+                showError('网络错误: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // 显示新闻列表
+        function displayNews(newsData) {
+            const newsList = document.getElementById('newsList');
+
+            if (newsData.length === 0) {
+                newsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📰</div>
+                        <h3>未找到相关新闻</h3>
+                        <p>试试调整筛选条件或更新数据</p>
                     </div>
                 `;
+                return;
             }
-        } catch (error) {
-            console.error('获取数据信息失败:', error);
-            document.getElementById('data-info').innerHTML = `
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle me-1"></i>无法获取数据统计信息
-                </div>
-            `;
-        }
-    }
-    
-    // 加载新闻数据
-    async function loadNews() {
-        const startDate = document.getElementById('startDate').value;
-        const endDate = document.getElementById('endDate').value;
-        const keyword = document.getElementById('keyword').value;
-        const sourceFilter = document.getElementById('sourceFilter').value;
-        
-        // 显示加载动画
-        document.getElementById('loading').style.display = 'block';
-        document.getElementById('newsList').innerHTML = '';
-        
-        try {
-            const params = new URLSearchParams();
-            if (startDate) params.append('start_date', startDate);
-            if (endDate) params.append('end_date', endDate);
-            if (keyword) params.append('keyword', keyword);
-            if (sourceFilter) params.append('source', sourceFilter);
-            
-            const response = await fetch(`/get_news?${params}`);
-            const result = await response.json();
-            
-            if (result.success) {
-                displayNews(result.data);
-                updateStats(result);
-            } else {
-                showUpdateMessage('加载失败: ' + result.error, 'error');
-            }
-        } catch (error) {
-            showUpdateMessage('网络错误: ' + error.message, 'error');
-        } finally {
-            document.getElementById('loading').style.display = 'none';
-        }
-    }
-    
-    // 显示新闻列表
-    function displayNews(newsData) {
-        const newsList = document.getElementById('newsList');
-        
-        if (newsData.length === 0) {
-            newsList.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                    <h4 class="text-muted">未找到相关新闻</h4>
-                    <p class="text-muted">请尝试调整筛选条件或刷新数据</p>
-                </div>
-            `;
-            return;
-        }
-        
-        let html = '';
-        newsData.forEach((news, index) => {
-            const sourceClass = news.source === '国家能源局' ? 'nea' : 'gov';
-            const sourceTextClass = news.source === '国家能源局' ? 'source-nea' : 'source-gov';
-            const badgeClass = news.source === '国家能源局' ? 'badge-nea' : 'badge-gov';
-            
-            html += `
-                <div class="news-card ${sourceClass}">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <span class="news-date">
-                                    <i class="far fa-calendar me-1"></i>${news.date}
-                                </span>
-                                <span class="badge ${badgeClass} source-badge ms-2">${news.source}</span>
-                            </div>
-                            <span class="news-source ${sourceTextClass}">
-                                <i class="fas fa-database me-1"></i>${news.source}
-                            </span>
+
+            let html = '';
+            newsData.forEach((news) => {
+                const badgeClass = news.source === '国家能源局' ? 'badge-nea' : 'badge-gov';
+
+                html += `
+                    <div class="news-card">
+                        <div class="news-meta">
+                            <span class="news-date">${news.date}</span>
+                            <span class="badge ${badgeClass}">${news.source}</span>
                         </div>
-                        <h5 class="news-title mb-3" onclick="window.open('${news.link}', '_blank')">
+                        <h3 class="news-title" onclick="window.open('${news.link}', '_blank')">
                             ${news.title}
-                        </h5>
-                        <div class="mt-3">
-                            <button class="btn btn-sm btn-outline-primary" onclick="window.open('${news.link}', '_blank')">
-                                <i class="fas fa-external-link-alt me-1"></i>查看原文
-                            </button>
-                        </div>
+                        </h3>
+                        <a href="${news.link}" target="_blank" class="news-link">阅读全文 →</a>
                     </div>
+                `;
+            });
+
+            newsList.innerHTML = html;
+        }
+
+        // 更新统计信息
+        function updateStats(result) {
+            document.getElementById('totalCount').textContent = result.total_count;
+            document.getElementById('filteredCount').textContent = result.count;
+
+            const neaCount = result.filtered_source_stats['国家能源局'] || 0;
+            const govCount = result.filtered_source_stats['中国政府网'] || 0;
+
+            document.getElementById('neaCount').textContent = neaCount;
+            document.getElementById('govCount').textContent = govCount;
+        }
+
+        // 刷新数据
+        async function refreshData() {
+            const refreshBtn = document.getElementById('refreshBtn');
+            const originalText = refreshBtn.textContent;
+
+            refreshBtn.textContent = '更新中...';
+            refreshBtn.disabled = true;
+
+            try {
+                const response = await fetch('/refresh_news');
+                const result = await response.json();
+
+                if (result.success) {
+                    checkUpdateStatus();
+                } else {
+                    alert('刷新失败: ' + result.error);
+                    refreshBtn.textContent = originalText;
+                    refreshBtn.disabled = false;
+                }
+            } catch (error) {
+                alert('网络错误: ' + error.message);
+                refreshBtn.textContent = originalText;
+                refreshBtn.disabled = false;
+            }
+        }
+
+        // 检查更新状态
+        async function checkUpdateStatus() {
+            try {
+                const response = await fetch('/check_update');
+                const result = await response.json();
+
+                if (result.success && result.updated) {
+                    loadDataInfo();
+                    loadNews();
+
+                    const refreshBtn = document.getElementById('refreshBtn');
+                    refreshBtn.textContent = '更新';
+                    refreshBtn.disabled = false;
+
+                    alert(result.message);
+                } else if (result.success && !result.updated) {
+                    setTimeout(checkUpdateStatus, 2000);
+                } else {
+                    const refreshBtn = document.getElementById('refreshBtn');
+                    refreshBtn.textContent = '更新';
+                    refreshBtn.disabled = false;
+                    alert('更新失败');
+                }
+            } catch (error) {
+                setTimeout(checkUpdateStatus, 2000);
+            }
+        }
+
+        // 显示错误
+        function showError(message) {
+            document.getElementById('newsList').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">⚠️</div>
+                    <h3>加载失败</h3>
+                    <p>${message}</p>
                 </div>
             `;
+        }
+
+        // 监听输入框回车键
+        document.getElementById('keyword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                loadNews();
+            }
         });
-        
-        newsList.innerHTML = html;
-    }
-    
-    // 更新统计信息
-    function updateStats(result) {
-        document.getElementById('totalCount').textContent = result.total_count;
-        document.getElementById('filteredCount').textContent = result.count;
-        
-        // 更新各来源数量
-        const neaCount = result.filtered_source_stats['国家能源局'] || 0;
-        const govCount = result.filtered_source_stats['中国政府网'] || 0;
-        
-        document.getElementById('neaCount').textContent = neaCount;
-        document.getElementById('govCount').textContent = govCount;
-    }
-    
-    // 刷新数据
-    async function refreshData() {
-        const refreshBtn = document.getElementById('refreshBtn');
-        const originalText = refreshBtn.innerHTML;
-        
-        // 显示加载状态
-        refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>更新中...';
-        refreshBtn.disabled = true;
-        
-        try {
-            const response = await fetch('/refresh_news');
-            const result = await response.json();
-            
-            if (result.success) {
-                // 显示更新提示
-                showUpdateMessage('数据更新中，这可能需要几分钟时间，请稍候...', 'info');
-                
-                // 定期检查更新状态
-                checkUpdateStatus();
-            } else {
-                showUpdateMessage('刷新失败: ' + result.error, 'error');
-                refreshBtn.innerHTML = originalText;
-                refreshBtn.disabled = false;
-            }
-        } catch (error) {
-            showUpdateMessage('网络错误: ' + error.message, 'error');
-            refreshBtn.innerHTML = originalText;
-            refreshBtn.disabled = false;
-        }
-    }
-    
-    // 检查更新状态
-    async function checkUpdateStatus() {
-        try {
-            const response = await fetch('/check_update');
-            const result = await response.json();
-            
-            if (result.success && result.updated) {
-                // 更新完成，重新加载数据和统计信息
-                showUpdateMessage(result.message, 'success');
-                loadDataInfo(); // 重新加载数据统计信息
-                loadNews(); // 重新加载新闻列表
-                
-                // 恢复按钮状态
-                const refreshBtn = document.getElementById('refreshBtn');
-                refreshBtn.innerHTML = '<i class="fas fa-sync-alt me-2"></i>刷新数据';
-                refreshBtn.disabled = false;
-            } else if (result.success && !result.updated) {
-                // 还在更新中，继续检查
-                setTimeout(checkUpdateStatus, 2000);
-            } else {
-                showUpdateMessage('更新失败: ' + result.message, 'error');
-                
-                // 恢复按钮状态
-                const refreshBtn = document.getElementById('refreshBtn');
-                refreshBtn.innerHTML = '<i class="fas fa-sync-alt me-2"></i>刷新数据';
-                refreshBtn.disabled = false;
-            }
-        } catch (error) {
-            console.error('检查更新状态失败:', error);
-            setTimeout(checkUpdateStatus, 2000);
-        }
-    }
-    
-    // 显示更新消息
-    function showUpdateMessage(message, type) {
-        // 移除现有消息
-        const existingMsg = document.getElementById('updateMessage');
-        if (existingMsg) {
-            existingMsg.remove();
-        }
-        
-        // 创建新消息
-        const messageDiv = document.createElement('div');
-        messageDiv.id = 'updateMessage';
-        let alertClass = 'alert-info';
-        if (type === 'error') alertClass = 'alert-danger';
-        if (type === 'success') alertClass = 'alert-success';
-        
-        messageDiv.className = `alert ${alertClass} alert-dismissible fade show mt-3`;
-        messageDiv.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        
-        // 插入到筛选卡片后面
-        const filterCard = document.querySelector('.filter-card');
-        filterCard.parentNode.insertBefore(messageDiv, filterCard.nextSibling);
-    }
-    
-    // 页面加载时设置默认日期并加载新闻
-    document.addEventListener('DOMContentLoaded', function() {
-        setDefaultDates();
-        loadDataInfo(); // 加载数据统计信息
-        loadNews(); // 加载新闻数据
-    });
-</script>
-{% endblock %}
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            setDefaultDates();
+            loadDataInfo();
+            loadNews();
+        });
+    </script>
+</body>
+</html>
