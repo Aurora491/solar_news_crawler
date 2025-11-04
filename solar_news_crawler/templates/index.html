@@ -1,320 +1,822 @@
-{% extends "base.html" %}
-
-{% block title %}光伏新闻资讯平台 - 首页{% endblock %}
-
-{% block content %}
-<!-- 头部区域 -->
-<div class="header-section">
-    <div class="container text-center">
-        <h1 class="display-4 fw-bold mb-4">光伏新闻资讯平台</h1>
-        <p class="lead mb-5">一站式获取国内外最新光伏政策与行业动态</p>
-    </div>
-</div>
-
-<!-- 功能选择区域 -->
-<div class="container">
-    <div class="row justify-content-center">
-        <!-- 国内新闻卡片 -->
-        <div class="col-md-5 mb-4">
-            <div class="feature-card domestic">
-                <div class="card-body text-center p-5">
-                    <div class="feature-icon domestic mb-4">
-                        <i class="fas fa-landmark"></i>
-                    </div>
-                    <h3 class="card-title h2 mb-3">国内政策新闻</h3>
-                    <p class="card-text fs-5 mb-4">
-                        实时获取国家能源局、中国政府网等权威机构发布的最新光伏政策、行业动态和发展规划
-                    </p>
-                    <div class="feature-stats mb-4">
-                        <div class="row text-center">
-                            <div class="col-6">
-                                <div class="stat-number" id="domesticCount">--</div>
-                                <div class="stat-label">新闻数量</div>
-                            </div>
-                            <div class="col-6">
-                                <div class="stat-number" id="domesticUpdate">--</div>
-                                <div class="stat-label">最后更新</div>
-                            </div>
-                        </div>
-                    </div>
-                    <a href="{{ url_for('news_search') }}" class="btn btn-primary btn-lg w-100">
-                        <i class="fas fa-search me-2"></i>查看国内新闻
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- 国际新闻卡片 - 修改为融合翻译新闻 -->
-        <div class="col-md-5 mb-4">
-            <div class="feature-card international">
-                <div class="card-body text-center p-5">
-                    <div class="feature-icon international mb-4">
-                        <i class="fas fa-globe-americas"></i>
-                    </div>
-                    <h3 class="card-title h2 mb-3">国际动态新闻</h3>
-                    <p class="card-text fs-5 mb-4">
-                        整合PV Magazine、IRENA、IEA等多来源国际太阳能新闻，支持中英文翻译和智能筛选
-                    </p>
-                    <div class="feature-stats mb-4">
-                        <div class="row text-center">
-                            <div class="col-6">
-                                <div class="stat-number" id="internationalCount">--</div>
-                                <div class="stat-label">新闻数量</div>
-                            </div>
-                            <div class="col-6">
-                                <div class="stat-number" id="internationalUpdate">--</div>
-                                <div class="stat-label">最后更新</div>
-                            </div>
-                        </div>
-                    </div>
-                    <a href="{{ url_for('translated_news') }}" class="btn btn-primary btn-lg w-100">
-                        <i class="fas fa-external-link-alt me-2"></i>查看国际新闻
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 平台介绍 -->
-    <div class="row mt-5">
-        <div class="col-12">
-            <div class="info-card">
-                <div class="card-body p-4">
-                    <h3 class="text-center mb-4"><i class="fas fa-info-circle me-2"></i>平台特色</h3>
-                    <div class="row">
-                        <div class="col-md-3 text-center mb-3">
-                            <div class="info-icon">
-                                <i class="fas fa-database"></i>
-                            </div>
-                            <h5>多数据源</h5>
-                            <p class="text-muted">国内权威机构 + 国际多来源</p>
-                        </div>
-                        <div class="col-md-3 text-center mb-3">
-                            <div class="info-icon">
-                                <i class="fas fa-sync-alt"></i>
-                            </div>
-                            <h5>实时更新</h5>
-                            <p class="text-muted">一键刷新获取最新数据</p>
-                        </div>
-                        <div class="col-md-3 text-center mb-3">
-                            <div class="info-icon">
-                                <i class="fas fa-search"></i>
-                            </div>
-                            <h5>智能筛选</h5>
-                            <p class="text-muted">按时间、关键词精准搜索</p>
-                        </div>
-                        <div class="col-md-3 text-center mb-3">
-                            <div class="info-icon">
-                                <i class="fas fa-language"></i>
-                            </div>
-                            <h5>多语言翻译</h5>
-                            <p class="text-muted">国际新闻支持中英翻译</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 数据来源说明 -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="info-card">
-                <div class="card-body p-4">
-                    <h4 class="text-center mb-4"><i class="fas fa-list-alt me-2"></i>国际新闻数据来源</h4>
-                    <div class="row justify-content-center">
-                        <div class="col-md-3 text-center mb-3">
-                            <div class="source-badge pv-badge">
-                                <i class="fas fa-newspaper me-2"></i>PV Magazine
-                            </div>
-                            <p class="text-muted mt-2">全球光伏行业专业媒体</p>
-                        </div>
-                        <div class="col-md-3 text-center mb-3">
-                            <div class="source-badge irena-badge">
-                                <i class="fas fa-globe me-2"></i>IRENA
-                            </div>
-                            <p class="text-muted mt-2">国际可再生能源机构</p>
-                        </div>
-                        <div class="col-md-3 text-center mb-3">
-                            <div class="source-badge iea-badge">
-                                <i class="fas fa-chart-line me-2"></i>IEA
-                            </div>
-                            <p class="text-muted mt-2">国际能源署</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    // 加载数据统计
-    async function loadStats() {
-        try {
-            // 加载国内新闻统计
-            const domesticResponse = await fetch('/get_stats');
-            const domesticData = await domesticResponse.json();
-            
-            if (domesticData.success) {
-                document.getElementById('domesticCount').textContent = domesticData.total_count;
-                document.getElementById('domesticUpdate').textContent = domesticData.last_update ? 
-                    domesticData.last_update.split(' ')[0] : '--';
-            }
-            
-            // 加载国际新闻统计 - 改为使用翻译合并数据
-            const internationalResponse = await fetch('/get_translated_stats');
-            const internationalData = await internationalResponse.json();
-            
-            if (internationalData.success) {
-                document.getElementById('internationalCount').textContent = internationalData.total_count;
-                document.getElementById('internationalUpdate').textContent = internationalData.last_update ? 
-                    internationalData.last_update.split(' ')[0] : '--';
-            }
-            
-        } catch (error) {
-            console.error('加载统计信息失败:', error);
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>光伏资讯平台 - 智慧数据 驱动未来</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-    }
 
-    // 页面加载时获取统计信息
-    document.addEventListener('DOMContentLoaded', function() {
-        loadStats();
-    });
-</script>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            color: #0a0a0a;
+            background-color: #ffffff;
+            line-height: 1.6;
+        }
 
-<style>
-.header-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 80px 0;
-    margin-bottom: 60px;
-}
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            width: 100%;
+            border-bottom: 1px solid #e5e5e5;
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
 
-.feature-card {
-    border: none;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
-    height: 100%;
-}
+        .header-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            height: 64px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+        }
 
-.feature-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-}
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #0a0a0a;
+        }
 
-.feature-card.domestic {
-    border-top: 5px solid #4e73df;
-}
+        .logo-img {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-.feature-card.international {
-    border-top: 5px solid #ff6b35;
-}
+        .logo-svg {
+            width: 40px;
+            height: 40px;
+            transition: transform 0.3s ease;
+        }
 
-.feature-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-    font-size: 2rem;
-}
+        .logo:hover .logo-svg {
+            transform: scale(1.1);
+        }
 
-.feature-icon.domestic {
-    background: linear-gradient(135deg, #4e73df, #6f8de8);
-    color: white;
-}
+        /* Logo 波浪线动画 */
+        @keyframes wave-flow {
+            0%, 100% {
+                stroke-dashoffset: 0;
+            }
+            50% {
+                stroke-dashoffset: 10;
+            }
+        }
 
-.feature-icon.international {
-    background: linear-gradient(135deg, #ff6b35, #ff8e53);
-    color: white;
-}
+        .logo-svg g path {
+            stroke-dasharray: 5, 5;
+            animation: wave-flow 3s linear infinite;
+        }
 
-.feature-stats {
-    background: #f8f9fa;
-    border-radius: 15px;
-    padding: 20px;
-}
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+        }
 
-.stat-number {
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: #2c3e50;
-}
+        nav {
+            display: flex;
+            gap: 24px;
+        }
 
-.stat-label {
-    font-size: 0.9rem;
-    color: #6c757d;
-    margin-top: 5px;
-}
+        nav a {
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            color: #0a0a0a;
+            transition: color 0.3s ease;
+        }
 
-.info-card {
-    background: #f8f9fa;
-    border-radius: 15px;
-    border: none;
-}
+        nav a:hover {
+            color: #0052CC;
+        }
 
-.info-icon {
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 15px;
-    color: white;
-    font-size: 1.5rem;
-}
+        @media (max-width: 768px) {
+            nav {
+                display: none;
+            }
+        }
 
-.source-badge {
-    display: inline-block;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: white;
-}
+        /* Main */
+        main {
+            flex: 1;
+        }
 
-.pv-badge {
-    background: linear-gradient(135deg, #17a2b8, #20c997);
-}
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
 
-.irena-badge {
-    background: linear-gradient(135deg, #ff6b35, #ff8e53);
-}
+        /* Hero Section */
+        .hero {
+            position: relative;
+            padding: 48px 16px 96px 16px;
+        }
 
-.iea-badge {
-    background: linear-gradient(135deg, #6f42c1, #e83e8c);
-}
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: center;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
 
-.btn-primary {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    border: none;
-    border-radius: 10px;
-    padding: 12px 30px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
+        .hero-text h1 {
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 16px;
+            color: #0a0a0a;
+        }
 
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-}
+        .hero-text p {
+            font-size: 18px;
+            color: #6b7280;
+            margin-bottom: 24px;
+            max-width: 600px;
+        }
 
-.card-title {
-    color: #2c3e50;
-    font-weight: 700;
-}
+        .hero-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
 
-.card-text {
-    color: #6c757d;
-    line-height: 1.6;
-}
-</style>
-{% endblock %}
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+            max-width: 200px;
+        }
+
+        .button-primary {
+            background-color: #0052CC;
+            color: white;
+        }
+
+        .button-primary:hover {
+            background-color: #0747A6;
+        }
+
+        .button-outline {
+            background-color: transparent;
+            color: #0a0a0a;
+            border: 1px solid #0a0a0a;
+        }
+
+        .button-outline:hover {
+            background-color: #f5f5f5;
+        }
+
+        .hero-image {
+            width: 100%;
+            height: 500px;
+            background: linear-gradient(135deg, #E8EEF5 0%, #D4E3F5 100%);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .hero-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        @media (max-width: 1024px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+
+            .hero-text h1 {
+                font-size: 36px;
+            }
+
+            .hero-image {
+                height: 400px;
+            }
+        }
+
+        /* Categories Section */
+        .categories-section {
+            background-color: #f5f5f5;
+            padding: 48px 16px;
+        }
+
+        .section-title {
+            font-size: 32px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 32px;
+            color: #0a0a0a;
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .category-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            aspect-ratio: 1;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            text-decoration: none;
+        }
+
+        .category-card:hover {
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-4px);
+        }
+
+        .category-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .category-card:hover img {
+            transform: scale(1.05);
+        }
+
+        .category-card-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+            display: flex;
+            align-items: flex-end;
+            padding: 16px;
+        }
+
+        .category-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+        }
+
+        @media (max-width: 1024px) {
+            .categories-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .categories-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+        }
+
+        /* Featured Products Section */
+        .featured-section {
+            padding: 48px 16px;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-bottom: 40px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .product-card {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .product-card:hover {
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-image {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0052CC 0%, #2684FF 100%);
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .product-card:hover .product-image img {
+            transform: scale(1.05);
+        }
+
+        .product-info {
+            padding: 16px;
+            text-align: center;
+        }
+
+        .product-category {
+            display: inline-block;
+            padding: 4px 12px;
+            background-color: #f5f5f5;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #0a0a0a;
+            margin-bottom: 8px;
+        }
+
+        .product-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #0a0a0a;
+        }
+
+        .product-desc {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .view-all-btn {
+            display: flex;
+            justify-content: center;
+        }
+
+        @media (max-width: 1024px) {
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Why Choose Us Section */
+        .features-section {
+            background-color: #f5f5f5;
+            padding: 48px 16px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background-color: white;
+            padding: 24px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 16px;
+            font-size: 28px;
+            color: #0052CC;
+        }
+
+        .feature-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #0a0a0a;
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 1024px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid #e5e5e5;
+            background-color: white;
+            padding: 32px 16px;
+        }
+
+        .footer-container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .footer-section h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #0a0a0a;
+        }
+
+        .footer-section p,
+        .footer-section a {
+            font-size: 14px;
+            color: #6b7280;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: #0052CC;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #e5e5e5;
+            padding-top: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+
+        .footer-bottom-text {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .footer-bottom-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-bottom-links a {
+            font-size: 12px;
+            color: #6b7280;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-bottom-links a:hover {
+            color: #0052CC;
+        }
+
+        @media (max-width: 768px) {
+            .footer-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <a href="{{ url_for('index') }}" class="logo">
+                <div class="logo-img">
+                    <svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <!-- 中心太阳 -->
+                        <circle cx="50" cy="50" r="12" fill="url(#sunGradient)">
+                            <animate attributeName="r" values="12;13;12" dur="3s" repeatCount="indefinite"/>
+                        </circle>
+
+                        <!-- 蓝色波浪线 - 8个方向 -->
+                        <g stroke="url(#waveGradient)" stroke-width="1.5" fill="none" stroke-linecap="round">
+                            <!-- 右 -->
+                            <path d="M 62 50 Q 70 48, 78 50 Q 86 52, 94 50" opacity="0.9"/>
+                            <path d="M 62 50 Q 68 46, 74 48 Q 80 50, 86 48" opacity="0.7"/>
+                            <path d="M 62 50 Q 68 54, 74 52 Q 80 50, 86 52" opacity="0.7"/>
+
+                            <!-- 左 -->
+                            <path d="M 38 50 Q 30 48, 22 50 Q 14 52, 6 50" opacity="0.9"/>
+                            <path d="M 38 50 Q 32 46, 26 48 Q 20 50, 14 48" opacity="0.7"/>
+                            <path d="M 38 50 Q 32 54, 26 52 Q 20 50, 14 52" opacity="0.7"/>
+
+                            <!-- 上 -->
+                            <path d="M 50 38 Q 48 30, 50 22 Q 52 14, 50 6" opacity="0.9"/>
+                            <path d="M 50 38 Q 46 32, 48 26 Q 50 20, 48 14" opacity="0.7"/>
+                            <path d="M 50 38 Q 54 32, 52 26 Q 50 20, 52 14" opacity="0.7"/>
+
+                            <!-- 下 -->
+                            <path d="M 50 62 Q 48 70, 50 78 Q 52 86, 50 94" opacity="0.9"/>
+                            <path d="M 50 62 Q 46 68, 48 74 Q 50 80, 48 86" opacity="0.7"/>
+                            <path d="M 50 62 Q 54 68, 52 74 Q 50 80, 52 86" opacity="0.7"/>
+
+                            <!-- 右上 -->
+                            <path d="M 59 41 Q 67 33, 75 25 Q 83 17, 91 9" opacity="0.8"/>
+                            <path d="M 59 41 Q 65 35, 71 29 Q 77 23, 83 17" opacity="0.6"/>
+
+                            <!-- 右下 -->
+                            <path d="M 59 59 Q 67 67, 75 75 Q 83 83, 91 91" opacity="0.8"/>
+                            <path d="M 59 59 Q 65 65, 71 71 Q 77 77, 83 83" opacity="0.6"/>
+
+                            <!-- 左上 -->
+                            <path d="M 41 41 Q 33 33, 25 25 Q 17 17, 9 9" opacity="0.8"/>
+                            <path d="M 41 41 Q 35 35, 29 29 Q 23 23, 17 17" opacity="0.6"/>
+
+                            <!-- 左下 -->
+                            <path d="M 41 59 Q 33 67, 25 75 Q 17 83, 9 91" opacity="0.8"/>
+                            <path d="M 41 59 Q 35 65, 29 71 Q 23 77, 17 83" opacity="0.6"/>
+                        </g>
+
+                        <!-- 渐变定义 -->
+                        <defs>
+                            <linearGradient id="sunGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#2684FF;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#0052CC;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#4C9AFF;stop-opacity:1" />
+                                <stop offset="50%" style="stop-color:#2684FF;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#0052CC;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <span class="logo-text">光伏资讯</span>
+            </a>
+            <nav>
+                <a href="{{ url_for('index') }}">主页</a>
+                <a href="{{ url_for('news_search') }}">国内新闻</a>
+                <a href="{{ url_for('translated_news') }}">国际新闻</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section class="hero" id="home">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>全球光伏资讯 一站掌握</h1>
+                    <p>整合国内外权威信息源，为光伏行业提供实时、精准的政策资讯与行业动态。智能检索，高效获取。</p>
+                    <div class="hero-buttons">
+                        <a href="{{ url_for('news_search') }}" class="button button-primary">国内新闻</a>
+                        <a href="{{ url_for('translated_news') }}" class="button button-outline">国际新闻</a>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <img src="https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=2072&auto=format&fit=crop" alt="Solar Panels">
+                </div>
+            </div>
+        </section>
+
+        <!-- Categories Section -->
+        <section class="categories-section" id="categories">
+            <div class="container">
+                <h2 class="section-title">国际信息源</h2>
+                <div class="categories-grid">
+                    <a href="https://www.pv-magazine.com/" target="_blank" class="category-card">
+                        <img src="https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?q=80&w=2076&auto=format&fit=crop" alt="PV Magazine">
+                        <div class="category-card-overlay">
+                            <h3>PV Magazine</h3>
+                        </div>
+                    </a>
+                    <a href="https://www.irena.org/" target="_blank" class="category-card">
+                        <img src="https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?q=80&w=2070&auto=format&fit=crop" alt="IRENA">
+                        <div class="category-card-overlay">
+                            <h3>IRENA</h3>
+                        </div>
+                    </a>
+                    <a href="https://www.iea.org/" target="_blank" class="category-card">
+                        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2015&auto=format&fit=crop" alt="IEA">
+                        <div class="category-card-overlay">
+                            <h3>IEA</h3>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Products Section -->
+        <section class="featured-section" id="shop">
+            <h2 class="section-title">国内信息源</h2>
+            <div class="products-grid">
+                <a href="http://www.nea.gov.cn/" target="_blank" class="product-card">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop" alt="国家能源局">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-category">政府机构</div>
+                        <div class="product-name">国家能源局</div>
+                        <div class="product-desc">能源政策制定与发布核心部门</div>
+                    </div>
+                </a>
+
+                <a href="http://www.gov.cn/" target="_blank" class="product-card">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1479142506502-19b3a3b7ff33?q=80&w=2070&auto=format&fit=crop" alt="中国政府网">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-category">政府网站</div>
+                        <div class="product-name">中国政府网</div>
+                        <div class="product-desc">国家政策信息权威发布平台</div>
+                    </div>
+                </a>
+            </div>
+            <div class="view-all-btn">
+                <a href="{{ url_for('news_search') }}" class="button button-outline">查看全部国内新闻</a>
+            </div>
+        </section>
+
+        <!-- Why Choose Us Section -->
+        <section class="features-section">
+            <div class="container">
+                <h2 class="section-title">平台优势</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🚀</div>
+                        <h3>实时同步</h3>
+                        <p>自动抓取最新资讯，确保信息时效性，第一时间掌握行业动态。</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔍</div>
+                        <h3>智能检索</h3>
+                        <p>强大的搜索功能，支持关键词、日期、来源多维度筛选。</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🌐</div>
+                        <h3>多源整合</h3>
+                        <p>汇聚国内外权威机构信息，一站式获取全球光伏资讯。</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🤖</div>
+                        <h3>AI翻译</h3>
+                        <p>智能翻译国际资讯，打破语言障碍，轻松阅读全球新闻。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <a href="{{ url_for('index') }}" class="logo" style="margin-bottom: 16px; display: inline-flex;">
+                        <div class="logo-img">
+                            <svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                                <!-- 中心太阳 -->
+                                <circle cx="50" cy="50" r="12" fill="url(#sunGradientFooter)">
+                                    <animate attributeName="r" values="12;13;12" dur="3s" repeatCount="indefinite"/>
+                                </circle>
+
+                                <!-- 蓝色波浪线 - 8个方向 -->
+                                <g stroke="url(#waveGradientFooter)" stroke-width="1.5" fill="none" stroke-linecap="round">
+                                    <!-- 右 -->
+                                    <path d="M 62 50 Q 70 48, 78 50 Q 86 52, 94 50" opacity="0.9"/>
+                                    <path d="M 62 50 Q 68 46, 74 48 Q 80 50, 86 48" opacity="0.7"/>
+                                    <path d="M 62 50 Q 68 54, 74 52 Q 80 50, 86 52" opacity="0.7"/>
+
+                                    <!-- 左 -->
+                                    <path d="M 38 50 Q 30 48, 22 50 Q 14 52, 6 50" opacity="0.9"/>
+                                    <path d="M 38 50 Q 32 46, 26 48 Q 20 50, 14 48" opacity="0.7"/>
+                                    <path d="M 38 50 Q 32 54, 26 52 Q 20 50, 14 52" opacity="0.7"/>
+
+                                    <!-- 上 -->
+                                    <path d="M 50 38 Q 48 30, 50 22 Q 52 14, 50 6" opacity="0.9"/>
+                                    <path d="M 50 38 Q 46 32, 48 26 Q 50 20, 48 14" opacity="0.7"/>
+                                    <path d="M 50 38 Q 54 32, 52 26 Q 50 20, 52 14" opacity="0.7"/>
+
+                                    <!-- 下 -->
+                                    <path d="M 50 62 Q 48 70, 50 78 Q 52 86, 50 94" opacity="0.9"/>
+                                    <path d="M 50 62 Q 46 68, 48 74 Q 50 80, 48 86" opacity="0.7"/>
+                                    <path d="M 50 62 Q 54 68, 52 74 Q 50 80, 52 86" opacity="0.7"/>
+
+                                    <!-- 右上 -->
+                                    <path d="M 59 41 Q 67 33, 75 25 Q 83 17, 91 9" opacity="0.8"/>
+                                    <path d="M 59 41 Q 65 35, 71 29 Q 77 23, 83 17" opacity="0.6"/>
+
+                                    <!-- 右下 -->
+                                    <path d="M 59 59 Q 67 67, 75 75 Q 83 83, 91 91" opacity="0.8"/>
+                                    <path d="M 59 59 Q 65 65, 71 71 Q 77 77, 83 83" opacity="0.6"/>
+
+                                    <!-- 左上 -->
+                                    <path d="M 41 41 Q 33 33, 25 25 Q 17 17, 9 9" opacity="0.8"/>
+                                    <path d="M 41 41 Q 35 35, 29 29 Q 23 23, 17 17" opacity="0.6"/>
+
+                                    <!-- 左下 -->
+                                    <path d="M 41 59 Q 33 67, 25 75 Q 17 83, 9 91" opacity="0.8"/>
+                                    <path d="M 41 59 Q 35 65, 29 71 Q 23 77, 17 83" opacity="0.6"/>
+                                </g>
+
+                                <!-- 渐变定义 -->
+                                <defs>
+                                    <linearGradient id="sunGradientFooter" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#2684FF;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#0052CC;stop-opacity:1" />
+                                    </linearGradient>
+                                    <linearGradient id="waveGradientFooter" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#4C9AFF;stop-opacity:1" />
+                                        <stop offset="50%" style="stop-color:#2684FF;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#0052CC;stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                        <span class="logo-text">光伏资讯</span>
+                    </a>
+                    <p>专注于光伏行业资讯整合，为从业者提供高效、准确的信息服务平台。</p>
+                </div>
+
+                <div class="footer-section">
+                    <h3>导航</h3>
+                    <div class="footer-links">
+                        <a href="{{ url_for('index') }}">主页</a>
+                        <a href="{{ url_for('news_search') }}">国内新闻</a>
+                        <a href="{{ url_for('translated_news') }}">国际新闻</a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h3>信息源</h3>
+                    <div class="footer-links">
+                        <a href="http://www.nea.gov.cn/" target="_blank">国家能源局</a>
+                        <a href="http://www.gov.cn/" target="_blank">中国政府网</a>
+                        <a href="https://www.pv-magazine.com/" target="_blank">PV Magazine</a>
+                        <a href="https://www.irena.org/" target="_blank">IRENA</a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h3>关于</h3>
+                    <div class="footer-links">
+                        <a href="#">关于我们</a>
+                        <a href="#">联系方式</a>
+                        <a href="#">隐私政策</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p class="footer-bottom-text">&copy; 2025 光伏资讯平台. All rights reserved.</p>
+                <div class="footer-bottom-links">
+                    <a href="#">隐私政策</a>
+                    <a href="#">服务条款</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
