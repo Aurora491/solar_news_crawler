@@ -27,10 +27,7 @@ def run_crawler_task():
 
         result = subprocess.run(
             [sys.executable, master_crawler_path, 'now'],
-            cwd=BASE_DIR,
-            capture_output=True,
-            text=True,
-            encoding='utf-8'
+            cwd=BASE_DIR
         )
 
         # 输出日志
