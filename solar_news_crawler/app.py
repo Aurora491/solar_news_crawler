@@ -40,6 +40,15 @@ is_irena_crawling = False
 last_update_time = None
 last_irena_update_time = None
 last_translated_update_time = None  # 新增：翻译数据更新时间
+last_manual_refresh_time = None  # 最后一次手动刷新的时间
+MANUAL_REFRESH_COOLDOWN = 600  # 手动刷新冷却时间（秒），10分钟
+
+# 数据文件哈希值缓存
+file_hashes = {
+    'combined': None,
+    'irena': None,
+    'translator': None
+}
 
 # 数据文件路径 - 修复路径问题
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -148,6 +157,74 @@ class Translator:
 
 # 创建翻译器实例
 translator = Translator()
+
+def calculate_file_hash(filepath):
+    """计算文件的MD5哈希值"""
+    if not os.path.exists(filepath):
+        return None
+    try:
+        with open(filepath, 'rb') as f:
+            file_hash = hashlib.md5(f.read()).hexdigest()
+        return file_hash
+    except Exception as e:
+        print(f"❌ 计算文件哈希失败 {filepath}: {e}")
+        return None
+
+def check_and_reload_data():
+    """检查数据文件是否有更新，如果有则重新加载"""
+    global file_hashes, news_data, irena_news_data, translated_news_data
+    global last_update_time, last_irena_update_time, last_translated_update_time
+
+    reload_flags = {
+        'combined': False,
+        'irena': False,
+        'translator': False
+    }
+
+    # 检查combined文件
+    latest_combined = find_latest_file('combined_*.json') or DATA_FILE
+    if os.path.exists(latest_combined):
+        current_hash = calculate_file_hash(latest_combined)
+        if current_hash and current_hash != file_hashes['combined']:
+            print(f"🔄 检测到combined数据文件更新: {latest_combined}")
+            file_hashes['combined'] = current_hash
+            reload_flags['combined'] = True
+
+    # 检查irena翻译文件
+    latest_irena_translated = find_latest_file('irena_*_translated.json') or IRENA_TRANSLATED_FILE
+    if os.path.exists(latest_irena_translated):
+        current_hash = calculate_file_hash(latest_irena_translated)
+        if current_hash and current_hash != file_hashes['irena']:
+            print(f"🔄 检测到IRENA数据文件更新: {latest_irena_translated}")
+            file_hashes['irena'] = current_hash
+            reload_flags['irena'] = True
+
+    # 检查translator文件
+    latest_translator = find_latest_translator_file() or TRANSLATED_FILE
+    if os.path.exists(latest_translator):
+        current_hash = calculate_file_hash(latest_translator)
+        if current_hash and current_hash != file_hashes['translator']:
+            print(f"🔄 检测到翻译数据文件更新: {latest_translator}")
+            file_hashes['translator'] = current_hash
+            reload_flags['translator'] = True
+
+    # 根据标志重新加载数据
+    if reload_flags['combined']:
+        if load_news_from_file():
+            last_update_time = datetime.now()
+            print(f"✅ 已重新加载combined数据: {len(news_data)} 条")
+
+    if reload_flags['irena']:
+        if load_irena_news_from_file():
+            last_irena_update_time = datetime.now()
+            print(f"✅ 已重新加载IRENA数据: {len(irena_news_data)} 条")
+
+    if reload_flags['translator']:
+        if load_translated_news_from_file():
+            last_translated_update_time = datetime.now()
+            print(f"✅ 已重新加载翻译数据: {len(translated_news_data)} 条")
+
+    return any(reload_flags.values())
 
 def load_news_from_file():
     """从JSON文件加载国内新闻数据"""
@@ -398,23 +475,33 @@ def run_irena_crawler():
 def initialize_data():
     """初始化数据"""
     global news_data, irena_news_data, translated_news_data, last_update_time, last_irena_update_time, last_translated_update_time
-    
+    global file_hashes
+
     print("🔄 初始化数据...")
-    
+
+    # 初始化combined数据和哈希
     if load_news_from_file():
         last_update_time = datetime.now()
+        latest_combined = find_latest_file('combined_*.json') or DATA_FILE
+        file_hashes['combined'] = calculate_file_hash(latest_combined)
         print(f"✅ 国内数据初始化完成: {len(news_data)} 条新闻")
     else:
         print("❌ 国内数据初始化失败")
-    
+
+    # 初始化IRENA数据和哈希
     if load_irena_news_from_file():
         last_irena_update_time = datetime.now()
+        latest_irena = find_latest_file('irena_*_translated.json') or IRENA_TRANSLATED_FILE
+        file_hashes['irena'] = calculate_file_hash(latest_irena)
         print(f"✅ IRENA数据初始化完成: {len(irena_news_data)} 条新闻")
     else:
         print("❌ IRENA数据初始化失败")
-    
+
+    # 初始化翻译数据和哈希
     if load_translated_news_from_file():
         last_translated_update_time = datetime.now()
+        latest_translator = find_latest_translator_file() or TRANSLATED_FILE
+        file_hashes['translator'] = calculate_file_hash(latest_translator)
         print(f"✅ 翻译数据初始化完成: {len(translated_news_data)} 条新闻")
     else:
         print("❌ 翻译数据初始化失败")
@@ -444,7 +531,10 @@ def translated_news():
 def get_news():
     """获取筛选后的国内新闻数据"""
     global news_data
-    
+
+    # 自动检查并重新加载数据文件（如果有更新）
+    check_and_reload_data()
+
     try:
         start_date_str = request.args.get('start_date')
         end_date_str = request.args.get('end_date')
@@ -526,17 +616,27 @@ def get_stats():
 @app.route('/refresh_news')
 def refresh_news():
     """触发国内新闻数据更新 - 运行爬虫脚本"""
-    global is_crawling
-    
+    global is_crawling, last_manual_refresh_time
+
+    # 检查冷却时间
+    if last_manual_refresh_time:
+        elapsed = (datetime.now() - last_manual_refresh_time).total_seconds()
+        if elapsed < MANUAL_REFRESH_COOLDOWN:
+            remaining = int(MANUAL_REFRESH_COOLDOWN - elapsed)
+            return jsonify({
+                'success': False,
+                'error': f'数据已是最新，请 {remaining} 秒后再试'
+            })
+
     if is_crawling:
         return jsonify({'success': False, 'error': '正在更新中，请稍候...'})
-    
+
     def crawl_news():
         global news_data, is_crawling, last_update_time
-        
+
         is_crawling = True
         print("🚀 开始运行爬虫更新数据...")
-        
+
         try:
             if run_crawler():
                 if load_news_from_file():
@@ -546,16 +646,19 @@ def refresh_news():
                     print("❌ 数据加载失败")
             else:
                 print("❌ 爬虫运行失败")
-                
+
         except Exception as e:
             print(f"❌ 数据更新失败: {e}")
         finally:
             is_crawling = False
-    
+
+    # 更新最后刷新时间
+    last_manual_refresh_time = datetime.now()
+
     thread = threading.Thread(target=crawl_news)
     thread.daemon = True
     thread.start()
-    
+
     return jsonify({'success': True, 'message': '开始更新数据，这可能需要几分钟时间...'})
 
 @app.route('/check_update')
@@ -581,7 +684,10 @@ def check_update():
 def get_irena_news():
     """获取筛选后的IRENA新闻数据"""
     global irena_news_data
-    
+
+    # 自动检查并重新加载数据文件（如果有更新）
+    check_and_reload_data()
+
     try:
         start_date_str = request.args.get('start_date')
         end_date_str = request.args.get('end_date')
@@ -651,17 +757,27 @@ def get_irena_news():
 @app.route('/refresh_irena_news')
 def refresh_irena_news():
     """触发IRENA新闻数据更新"""
-    global is_irena_crawling
-    
+    global is_irena_crawling, last_manual_refresh_time
+
+    # 检查冷却时间
+    if last_manual_refresh_time:
+        elapsed = (datetime.now() - last_manual_refresh_time).total_seconds()
+        if elapsed < MANUAL_REFRESH_COOLDOWN:
+            remaining = int(MANUAL_REFRESH_COOLDOWN - elapsed)
+            return jsonify({
+                'success': False,
+                'error': f'数据已是最新，请 {remaining} 秒后再试'
+            })
+
     if is_irena_crawling:
         return jsonify({'success': False, 'error': 'IRENA数据正在更新中，请稍候...'})
-    
+
     def crawl_irena_news():
         global irena_news_data, is_irena_crawling, last_irena_update_time
-        
+
         is_irena_crawling = True
         print("🚀 开始运行IRENA爬虫更新数据...")
-        
+
         try:
             if run_irena_crawler():
                 if load_irena_news_from_file():
@@ -671,16 +787,19 @@ def refresh_irena_news():
                     print("❌ IRENA数据加载失败")
             else:
                 print("❌ IRENA爬虫运行失败")
-                
+
         except Exception as e:
             print(f"❌ IRENA数据更新失败: {e}")
         finally:
             is_irena_crawling = False
-    
+
+    # 更新最后刷新时间
+    last_manual_refresh_time = datetime.now()
+
     thread = threading.Thread(target=crawl_irena_news)
     thread.daemon = True
     thread.start()
-    
+
     return jsonify({'success': True, 'message': '开始更新IRENA数据，这可能需要几分钟时间...'})
 
 @app.route('/check_irena_update')
@@ -705,10 +824,23 @@ def check_irena_update():
 @app.route('/refresh_translated_news')
 def refresh_translated_news():
     """重新加载最新的翻译文件（不运行爬虫，只刷新数据）"""
-    global translated_news_data, last_translated_update_time
+    global translated_news_data, last_translated_update_time, last_manual_refresh_time
+
+    # 检查冷却时间
+    if last_manual_refresh_time:
+        elapsed = (datetime.now() - last_manual_refresh_time).total_seconds()
+        if elapsed < MANUAL_REFRESH_COOLDOWN:
+            remaining = int(MANUAL_REFRESH_COOLDOWN - elapsed)
+            return jsonify({
+                'success': False,
+                'error': f'数据已是最新，请 {remaining} 秒后再试'
+            })
 
     try:
         print("🔄 开始刷新翻译数据...")
+
+        # 更新最后刷新时间
+        last_manual_refresh_time = datetime.now()
 
         # 重新加载最新的翻译文件
         if load_translated_news_from_file():
@@ -731,7 +863,10 @@ def refresh_translated_news():
 def get_translated_news():
     """获取翻译合并后的多来源新闻数据"""
     global translated_news_data
-    
+
+    # 自动检查并重新加载数据文件（如果有更新）
+    check_and_reload_data()
+
     try:
         start_date_str = request.args.get('start_date')
         end_date_str = request.args.get('end_date')
