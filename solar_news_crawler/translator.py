@@ -186,45 +186,49 @@ class MultiFileTranslator:
         try:
             with open(filename, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-            
+
             print(f"处理IRENA文件: {filename}")
-            
+
+            # 支持两种格式：字典格式 {"news_list": [...]} 和数组格式 [...]
             if isinstance(data, dict) and 'news_list' in data:
                 news_list = data['news_list']
-                print(f"找到 {len(news_list)} 条新闻")
-                
-                processed_news = []
-                for i, item in enumerate(news_list):
-                    print(f"处理进度: {i+1}/{len(news_list)}")
-                    
-                    # 翻译标题
-                    original_title = item.get('title', '')
-                    translated_title = self.translate_text(original_title)
-                    
-                    # 构建标准化格式
-                    news_item = {
-                        'title_original': original_title,
-                        'title_translated': translated_title,
-                        'link': item.get('link', ''),
-                        'publish_date': item.get('date', ''),
-                        'source': 'IRENA',
-                        'summary': item.get('summary', ''),
-                        'category': item.get('category', ''),
-                        'language': item.get('language', ''),
-                        'file_source': os.path.basename(filename)
-                    }
-                    
-                    processed_news.append(news_item)
-                    print(f"  ✓ IRENA: {original_title[:60]}...")
-                    
-                    # 避免请求过于频繁
-                    time.sleep(2)
-                
-                return processed_news
+            elif isinstance(data, list):
+                news_list = data
             else:
                 print("❌ IRENA文件格式不符合预期")
                 return []
-            
+
+            print(f"找到 {len(news_list)} 条新闻")
+
+            processed_news = []
+            for i, item in enumerate(news_list):
+                print(f"处理进度: {i+1}/{len(news_list)}")
+
+                # 翻译标题
+                original_title = item.get('title', '')
+                translated_title = self.translate_text(original_title)
+
+                # 构建标准化格式
+                news_item = {
+                    'title_original': original_title,
+                    'title_translated': translated_title,
+                    'link': item.get('link', ''),
+                    'publish_date': item.get('date', ''),
+                    'source': 'IRENA',
+                    'summary': item.get('summary', ''),
+                    'category': item.get('category', ''),
+                    'language': item.get('language', ''),
+                    'file_source': os.path.basename(filename)
+                }
+
+                processed_news.append(news_item)
+                print(f"  ✓ IRENA: {original_title[:60]}...")
+
+                # 避免请求过于频繁
+                time.sleep(2)
+
+            return processed_news
+
         except Exception as e:
             print(f"❌ 处理IRENA文件失败: {e}")
             return []

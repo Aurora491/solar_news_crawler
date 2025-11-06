@@ -24,9 +24,10 @@ try:
         def __init__(self):
             self.irena_url = "https://www.irena.org/News"
             self.driver = None
+            self.content_data = []  # 初始化content_data属性，与其他爬虫保持一致
             self.search_keywords = [
                 "solar energy",
-                "photovoltaic", 
+                "photovoltaic",
                 "solar power",
                 "renewable energy"
             ]

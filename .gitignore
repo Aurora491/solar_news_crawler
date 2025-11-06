@@ -25,6 +25,7 @@ MANIFEST
 
 # Virtual Environment
 venv/
+.venv/
 env/
 ENV/
 env.bak/
@@ -59,6 +60,7 @@ solar_news_crawler/translator_*.json
 
 # Generated data files
 solar_news_crawler/*.json
+solar_news_crawler/summary_*.json
 !solar_news_crawler/requirements.txt
 
 # Duplicate directories (should only exist in solar_news_crawler/)
