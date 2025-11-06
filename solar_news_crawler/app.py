@@ -422,6 +422,97 @@ def initialize_data():
 # 在模块加载时初始化数据（支持gunicorn等WSGI服务器）
 initialize_data()
 
+# ==================== 自动重载数据机制 ====================
+
+# 记录已加载文件的修改时间
+loaded_files_mtime = {
+    'combined': None,
+    'irena': None,
+    'translator': None
+}
+
+def check_and_reload_data():
+    """检查文件是否更新，如果更新则重新加载数据"""
+    global news_data, irena_news_data, translated_news_data
+    global last_update_time, last_irena_update_time, last_translated_update_time
+    global loaded_files_mtime
+
+    reloaded = False
+
+    try:
+        # 检查国内新闻文件
+        latest_combined = find_latest_file('combined_*.json')
+        if latest_combined and os.path.exists(latest_combined):
+            mtime = os.path.getmtime(latest_combined)
+            if loaded_files_mtime['combined'] is None or mtime > loaded_files_mtime['combined']:
+                print(f"🔄 检测到新的国内新闻数据文件，正在重新加载...")
+                if load_news_from_file():
+                    loaded_files_mtime['combined'] = mtime
+                    last_update_time = datetime.now()
+                    print(f"✅ 国内新闻数据已更新: {len(news_data)} 条")
+                    reloaded = True
+
+        # 检查IRENA新闻文件
+        latest_irena = find_latest_file('irena_*_translated.json') or find_latest_file('irena_*.json')
+        if latest_irena and os.path.exists(latest_irena):
+            mtime = os.path.getmtime(latest_irena)
+            if loaded_files_mtime['irena'] is None or mtime > loaded_files_mtime['irena']:
+                print(f"🔄 检测到新的IRENA新闻数据文件，正在重新加载...")
+                if load_irena_news_from_file():
+                    loaded_files_mtime['irena'] = mtime
+                    last_irena_update_time = datetime.now()
+                    print(f"✅ IRENA新闻数据已更新: {len(irena_news_data)} 条")
+                    reloaded = True
+
+        # 检查翻译合并文件
+        latest_translator = find_latest_translator_file()
+        if latest_translator and os.path.exists(latest_translator):
+            mtime = os.path.getmtime(latest_translator)
+            if loaded_files_mtime['translator'] is None or mtime > loaded_files_mtime['translator']:
+                print(f"🔄 检测到新的翻译数据文件，正在重新加载...")
+                if load_translated_news_from_file():
+                    loaded_files_mtime['translator'] = mtime
+                    last_translated_update_time = datetime.now()
+                    print(f"✅ 翻译新闻数据已更新: {len(translated_news_data)} 条")
+                    reloaded = True
+
+        if reloaded:
+            print(f"📊 数据重载完成 - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+    except Exception as e:
+        print(f"❌ 检查/重载数据时出错: {e}")
+
+def auto_reload_data_worker():
+    """后台线程：定期检查并重载数据"""
+    print("🔄 自动数据重载线程已启动（每5分钟检查一次）")
+    while True:
+        time.sleep(300)  # 每5分钟检查一次
+        check_and_reload_data()
+
+# 初始化文件修改时间记录
+def initialize_file_mtimes():
+    """初始化已加载文件的修改时间"""
+    global loaded_files_mtime
+
+    latest_combined = find_latest_file('combined_*.json')
+    if latest_combined and os.path.exists(latest_combined):
+        loaded_files_mtime['combined'] = os.path.getmtime(latest_combined)
+
+    latest_irena = find_latest_file('irena_*_translated.json') or find_latest_file('irena_*.json')
+    if latest_irena and os.path.exists(latest_irena):
+        loaded_files_mtime['irena'] = os.path.getmtime(latest_irena)
+
+    latest_translator = find_latest_translator_file()
+    if latest_translator and os.path.exists(latest_translator):
+        loaded_files_mtime['translator'] = os.path.getmtime(latest_translator)
+
+    print(f"📝 文件修改时间已记录")
+
+# 初始化文件修改时间并启动自动重载线程
+initialize_file_mtimes()
+reload_thread = threading.Thread(target=auto_reload_data_worker, daemon=True)
+reload_thread.start()
+
 # ==================== 国内新闻路由 ====================
 
 @app.route('/')
