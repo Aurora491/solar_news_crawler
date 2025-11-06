@@ -238,17 +238,66 @@ def run_all_crawlers(timeout_per_crawler=600):
         print("🌐 开始翻译任务")
         print(f"{'='*60}\n")
 
+        translator_output = None
         try:
             from translator import MultiFileTranslator
             translator = MultiFileTranslator()
-            output_file = translator.merge_and_save_translations()
-            if output_file:
+            translator_output = translator.merge_and_save_translations()
+            if translator_output:
                 print(f"\n✅ 翻译完成！")
-                print(f"📁 文件: {output_file}\n")
+                print(f"📁 文件: {translator_output}\n")
             else:
                 print("\n⚠️  翻译未生成输出文件\n")
         except Exception as e:
             print(f"\n❌ 翻译失败: {e}\n")
+
+        # 6. 生成AI总结
+        print(f"\n{'='*60}")
+        print("🤖 开始生成AI总结")
+        print(f"{'='*60}\n")
+
+        try:
+            from ai_summarizer import AISummarizer
+
+            # 生成国内新闻总结
+            print("📝 生成国内新闻AI总结...")
+            combined_file = results.get('combined', {}).get('file')
+            if combined_file and os.path.exists(combined_file):
+                domestic_summary = AISummarizer.run_from_file(
+                    combined_file,
+                    'domestic',
+                    'ai_summary_domestic.json'
+                )
+                if domestic_summary.get('success'):
+                    print(f"✅ 国内新闻AI总结生成成功\n")
+                else:
+                    print(f"⚠️  国内新闻AI总结生成失败: {domestic_summary.get('error')}\n")
+            else:
+                print("⚠️  未找到国内新闻数据文件，跳过国内新闻总结\n")
+
+            # 生成国际新闻总结
+            print("📝 生成国际新闻AI总结...")
+            if translator_output and os.path.exists(translator_output):
+                international_summary = AISummarizer.run_from_file(
+                    translator_output,
+                    'international',
+                    'ai_summary_international.json'
+                )
+                if international_summary.get('success'):
+                    print(f"✅ 国际新闻AI总结生成成功\n")
+                else:
+                    print(f"⚠️  国际新闻AI总结生成失败: {international_summary.get('error')}\n")
+            else:
+                print("⚠️  未找到翻译文件，跳过国际新闻总结\n")
+
+            print(f"{'='*60}")
+            print("🎉 AI总结任务完成")
+            print(f"{'='*60}\n")
+
+        except ImportError:
+            print("⚠️  AI总结模块未安装或环境变量未配置，跳过AI总结\n")
+        except Exception as e:
+            print(f"❌ AI总结生成失败: {e}\n")
 
         return {
             "results": results,

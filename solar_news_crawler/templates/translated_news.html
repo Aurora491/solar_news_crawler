@@ -250,6 +250,64 @@
             color: #6b7280;
         }
 
+        /* AI Summary Card */
+        .ai-summary-card {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #0052CC;
+        }
+
+        .ai-summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .ai-summary-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0a0a0a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-summary-content {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #4b5563;
+        }
+
+        .ai-summary-content h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #0a0a0a;
+            margin: 16px 0 8px 0;
+        }
+
+        .ai-summary-meta {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .ai-summary-placeholder {
+            text-align: center;
+            padding: 32px;
+            color: #9ca3af;
+        }
+
+        .btn-sm {
+            padding: 6px 16px;
+            font-size: 13px;
+        }
+
         /* News Cards */
         .news-card {
             background: white;
@@ -437,6 +495,20 @@
 
     <!-- Main Content -->
     <div class="container">
+        <!-- AI Summary Card -->
+        <div class="ai-summary-card" id="aiSummaryCard">
+            <div class="ai-summary-header">
+                <div class="ai-summary-title">
+                    AI 每日简报
+                </div>
+            </div>
+            <div class="ai-summary-content" id="aiSummaryContent">
+                <div class="ai-summary-placeholder">
+                    暂无AI简报数据
+                </div>
+            </div>
+        </div>
+
         <!-- Data Info -->
         <div id="data-info"></div>
 
@@ -512,6 +584,9 @@
             </div>
         </div>
     </footer>
+
+    <!-- Markdown 渲染库 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.0/marked.min.js"></script>
 
     <script>
         // 设置默认日期
@@ -738,11 +813,48 @@
             }
         });
 
+        // 加载AI总结
+        async function loadAISummary() {
+            try {
+                const response = await fetch('/get_ai_summary/international');
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    const data = result.data;
+                    const contentDiv = document.getElementById('aiSummaryContent');
+
+                    let summaryHtml = '';
+
+                    // 使用 marked.js 渲染 markdown
+                    if (data.summary) {
+                        summaryHtml = marked.parse(data.summary);
+                    }
+
+                    contentDiv.innerHTML = `
+                        <div class="ai-summary-content">
+                            ${summaryHtml}
+                            <div class="ai-summary-meta">
+                                生成日期: ${data.date || ''} |
+                                生成时间: ${data.generated_at || ''} |
+                                分析新闻: ${data.news_count || 0} 条
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // 保持占位符
+                    console.log('暂无AI总结数据');
+                }
+            } catch (error) {
+                console.error('加载AI总结失败:', error);
+            }
+        }
+
         // 页面加载时初始化
         document.addEventListener('DOMContentLoaded', function() {
             setDefaultDates();
             loadDataInfo();
             loadNews();
+            loadAISummary();  // 加载AI总结
         });
     </script>
 </body>

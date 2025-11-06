@@ -14,6 +14,14 @@ from urllib.parse import quote, urljoin
 import requests
 from flask import Flask, jsonify, render_template, request
 
+# 导入AI总结模块
+try:
+    from ai_summarizer import AISummarizer
+    AI_ENABLED = True
+except ImportError:
+    print("⚠️ AI总结模块未安装或配置不正确")
+    AI_ENABLED = False
+
 
 def find_latest_file(pattern, directory="output/individual"):
     """查找指定模式的最新文件"""
@@ -48,6 +56,10 @@ last_translated_update_time = None  # 新增：翻译数据更新时间
 last_manual_refresh_time = None  # 最后一次手动刷新的时间
 MANUAL_REFRESH_COOLDOWN = 600  # 手动刷新冷却时间（秒），10分钟
 
+# AI总结数据
+domestic_ai_summary = {}  # 国内新闻AI总结
+international_ai_summary = {}  # 国际新闻AI总结
+
 # 数据文件哈希值缓存
 file_hashes = {"combined": None, "irena": None, "translator": None}
 
@@ -66,10 +78,16 @@ TRANSLATED_FILE = find_latest_translator_file() or os.path.join(
     BASE_DIR, "translator.json"
 )  # 新增：翻译合并文件
 
+# AI总结文件路径
+AI_SUMMARY_DOMESTIC_FILE = os.path.join(BASE_DIR, "summary_domestic.json")
+AI_SUMMARY_INTERNATIONAL_FILE = os.path.join(BASE_DIR, "summary_international.json")
+
 print(f"📁 数据文件路径: {DATA_FILE}")
 print(f"📁 IRENA数据文件路径: {IRENA_DATA_FILE}")
 print(f"📁 IRENA翻译文件路径: {IRENA_TRANSLATED_FILE}")
 print(f"📁 翻译合并文件路径: {TRANSLATED_FILE}")
+print(f"📁 国内AI总结文件: {AI_SUMMARY_DOMESTIC_FILE}")
+print(f"📁 国际AI总结文件: {AI_SUMMARY_INTERNATIONAL_FILE}")
 
 
 # 翻译相关配置
@@ -1117,6 +1135,77 @@ def translate_news():
         )
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
+
+
+# ==================== AI总结相关功能 ====================
+
+
+def load_ai_summary(file_path):
+    """从文件加载AI总结（返回今天的，如果没有就返回最新的）"""
+    try:
+        if os.path.exists(file_path):
+            with open(file_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+
+            # 如果是列表格式（新格式）
+            if isinstance(data, list) and len(data) > 0:
+                today = datetime.now().strftime("%Y-%m-%d")
+                # 优先返回今天的简报
+                for item in data:
+                    if item.get("date") == today:
+                        print(f"✅ AI总结加载成功 (今日): {file_path}")
+                        return item
+                # 如果没有今天的，返回最新的（列表第一条）
+                print(f"✅ AI总结加载成功 (最新): {file_path}")
+                return data[0]
+
+            # 兼容旧格式（字典）
+            print(f"✅ AI总结加载成功: {file_path}")
+            return data
+        else:
+            print(f"⚠️ AI总结文件不存在: {file_path}")
+            return {}
+    except Exception as e:
+        print(f"❌ 加载AI总结失败: {e}")
+        return {}
+
+
+@app.route("/get_ai_summary/<news_type>")
+def get_ai_summary(news_type):
+    """
+    获取AI总结
+    news_type: domestic(国内) 或 international(国际)
+    """
+    global domestic_ai_summary, international_ai_summary
+
+    try:
+        if news_type == "domestic":
+            # 重新加载国内新闻AI总结
+            summary = load_ai_summary(AI_SUMMARY_DOMESTIC_FILE)
+            domestic_ai_summary = summary
+        elif news_type == "international":
+            # 重新加载国际新闻AI总结
+            summary = load_ai_summary(AI_SUMMARY_INTERNATIONAL_FILE)
+            international_ai_summary = summary
+        else:
+            return jsonify({"success": False, "error": "无效的新闻类型"})
+
+        if not summary:
+            return jsonify({
+                "success": False,
+                "error": "暂无AI总结数据，请先生成总结"
+            })
+
+        return jsonify({
+            "success": True,
+            "data": summary
+        })
+
+    except Exception as e:
+        print(f"❌ 获取AI总结错误: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
+
 
 
 if __name__ == "__main__":
